@@ -1,35 +1,82 @@
-<script>
-async function loadContent() {
-    try {
-        const res = await fetch('/api/content');
-        const data = await res.json();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JJ Dashboard</title>
 
-        const container = document.getElementById('content');
-        container.innerHTML = '';
+    <style>
+        body {
+            background: #0b0b0b;
+            color: white;
+            font-family: Arial;
+            padding: 30px;
+        }
 
-        data.forEach(item => {
-            const card = document.createElement('div');
-            card.style.padding = '20px';
-            card.style.marginBottom = '15px';
-            card.style.background = '#111';
-            card.style.borderRadius = '10px';
+        h1 {
+            margin-bottom: 20px;
+        }
 
-            card.innerHTML = `
-                <h3>${item.metadata?.video?.title || 'Untitled'}</h3>
-                <p>${item.script}</p>
-                <small>${item.visuals?.prompt || ''}</small>
-            `;
+        .card {
+            background: #111;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
 
-            container.appendChild(card);
-        });
+        .script {
+            margin: 10px 0;
+        }
 
-    } catch (err) {
-        console.error(err);
-    }
-}
+        .meta {
+            opacity: 0.7;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
 
-loadContent();
+    <h1>JJ Dashboard (Live)</h1>
 
-// 🔁 Auto refresh every 10 seconds
-setInterval(loadContent, 10000);
-</script>
+    <div id="content">
+        Loading...
+    </div>
+
+    <script>
+        async function loadContent() {
+            try {
+                const res = await fetch('/api/content');
+                const data = await res.json();
+
+                const container = document.getElementById('content');
+                container.innerHTML = '';
+
+                if (data.length === 0) {
+                    container.innerHTML = "No content yet...";
+                    return;
+                }
+
+                data.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+
+                    card.innerHTML = `
+                        <h3>${item.metadata?.video?.title || 'Untitled'}</h3>
+                        <div class="script">${item.script}</div>
+                        <div class="meta">${item.visuals?.prompt || ''}</div>
+                    `;
+
+                    container.appendChild(card);
+                });
+
+            } catch (err) {
+                document.getElementById('content').innerHTML = "Error loading content";
+                console.error(err);
+            }
+        }
+
+        loadContent();
+        setInterval(loadContent, 10000);
+    </script>
+
+</body>
+</html>
