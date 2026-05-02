@@ -3,8 +3,6 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-
-// ✅ REQUIRED FOR RENDER
 const PORT = process.env.PORT || 3000;
 
 const OUTPUT_DIR = path.join(__dirname, 'output');
@@ -13,7 +11,7 @@ app.use(express.static('public'));
 
 
 // ===============================
-// 📦 EXISTING: GET GENERATED VIDEOS
+// EXISTING: VIDEOS
 // ===============================
 app.get('/api/videos', (req, res) => {
     try {
@@ -24,20 +22,16 @@ app.get('/api/videos', (req, res) => {
         const data = folders.map(folder => {
             const dir = path.join(OUTPUT_DIR, folder);
 
-            const scriptPath = path.join(dir, 'script.txt');
-            const visualsPath = path.join(dir, 'visuals.json');
-            const metadataPath = path.join(dir, 'metadata.json');
-
-            const script = fs.existsSync(scriptPath)
-                ? fs.readFileSync(scriptPath, 'utf-8')
+            const script = fs.existsSync(path.join(dir, 'script.txt'))
+                ? fs.readFileSync(path.join(dir, 'script.txt'), 'utf-8')
                 : '';
 
-            const visuals = fs.existsSync(visualsPath)
-                ? JSON.parse(fs.readFileSync(visualsPath))
+            const visuals = fs.existsSync(path.join(dir, 'visuals.json'))
+                ? JSON.parse(fs.readFileSync(path.join(dir, 'visuals.json')))
                 : {};
 
-            const metadata = fs.existsSync(metadataPath)
-                ? JSON.parse(fs.readFileSync(metadataPath))
+            const metadata = fs.existsSync(path.join(dir, 'metadata.json'))
+                ? JSON.parse(fs.readFileSync(path.join(dir, 'metadata.json')))
                 : {};
 
             return { folder, script, visuals, metadata };
@@ -46,40 +40,36 @@ app.get('/api/videos', (req, res) => {
         res.json(data);
 
     } catch (err) {
-        console.error("Error reading videos:", err);
+        console.error(err);
         res.status(500).json({ error: "Failed to load videos" });
     }
 });
 
 
 // ===============================
-// 🚀 NEW: PIPELINE + LIVE CONTENT
+// 🚀 NEW: CONTENT API (THIS IS WHAT YOU'RE MISSING)
 // ===============================
 const { runPipeline } = require('./core/pipeline');
 
-// API endpoint for frontend
 app.get('/api/content', async (req, res) => {
     try {
         const result = await runPipeline();
         res.json(result);
     } catch (err) {
-        console.error("Pipeline error:", err);
+        console.error(err);
         res.status(500).json({ error: "Pipeline failed" });
     }
 });
 
 
 // ===============================
-// 🔁 AUTO GENERATION LOOP
+// AUTO RUN
 // ===============================
-
-// run immediately (on deploy)
 (async () => {
     console.log("Initial pipeline run...");
     await runPipeline();
 })();
 
-// run every 5 minutes
 setInterval(async () => {
     console.log("Auto generating...");
     await runPipeline();
@@ -87,7 +77,7 @@ setInterval(async () => {
 
 
 // ===============================
-// 🚀 START SERVER
+// START SERVER
 // ===============================
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
