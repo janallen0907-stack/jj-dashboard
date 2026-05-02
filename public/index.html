@@ -5,44 +5,63 @@
 <title>JJ Dashboard</title>
 
 <style>
-    body {
-        background: #0d0d0d;
-        color: #fff;
-        font-family: Arial, sans-serif;
-        padding: 40px;
-    }
+body {
+    background: #0d0d0d;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    padding: 40px;
+}
 
-    h1 {
-        margin-bottom: 20px;
-    }
+h1 {
+    margin-bottom: 30px;
+}
 
-    .card {
-        background: #1a1a1a;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-    }
+button {
+    background: #111;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
 
-    .title {
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
+button:hover {
+    background: #222;
+}
 
-    .script {
-        opacity: 0.9;
-        margin-bottom: 8px;
-    }
+.card {
+    background: linear-gradient(145deg, #1a1a1a, #111);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
 
-    .style {
-        opacity: 0.6;
-        font-size: 14px;
-    }
+.title {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.script {
+    opacity: 0.9;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.style {
+    opacity: 0.6;
+    font-size: 14px;
+}
 </style>
 </head>
 
 <body>
 
 <h1>JJ Dashboard (Live)</h1>
+
+<button id="generateBtn">Generate Now</button>
 
 <div id="content"></div>
 
@@ -68,6 +87,26 @@ async function loadContent() {
     });
 }
 
+// 🔥 BUTTON LOGIC
+const btn = document.getElementById('generateBtn');
+
+btn.addEventListener('click', async () => {
+    btn.innerText = "Generating...";
+    btn.disabled = true;
+
+    try {
+        await fetch('/api/generate');
+        await loadContent();
+    } catch (err) {
+        console.error(err);
+        alert("Failed to generate");
+    }
+
+    btn.innerText = "Generate Now";
+    btn.disabled = false;
+});
+
+// 🔄 AUTO REFRESH
 loadContent();
 setInterval(loadContent, 5000);
 </script>
