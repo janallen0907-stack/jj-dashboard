@@ -3,8 +3,6 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-
-// ✅ REQUIRED FOR RENDER
 const PORT = process.env.PORT || 3000;
 
 const OUTPUT_DIR = path.join(__dirname, 'output');
@@ -12,17 +10,13 @@ const OUTPUT_DIR = path.join(__dirname, 'output');
 app.use(express.static('public'));
 
 
-// =============================
-// ✅ TEST ROUTE (VERY IMPORTANT)
-// =============================
+// ✅ TEST ROUTE (must be AFTER app is created)
 app.get('/test', (req, res) => {
     res.send('TEST OK');
 });
 
 
-// =============================
-// 🎯 API CONTENT ENDPOINT
-// =============================
+// ✅ API CONTENT
 app.get('/api/content', (req, res) => {
     try {
         if (!fs.existsSync(OUTPUT_DIR)) {
@@ -34,20 +28,16 @@ app.get('/api/content', (req, res) => {
         const data = folders.map(folder => {
             const dir = path.join(OUTPUT_DIR, folder);
 
-            const scriptPath = path.join(dir, 'script.txt');
-            const visualsPath = path.join(dir, 'visuals.json');
-            const metadataPath = path.join(dir, 'metadata.json');
-
-            const script = fs.existsSync(scriptPath)
-                ? fs.readFileSync(scriptPath, 'utf-8')
+            const script = fs.existsSync(path.join(dir, 'script.txt'))
+                ? fs.readFileSync(path.join(dir, 'script.txt'), 'utf-8')
                 : '';
 
-            const visuals = fs.existsSync(visualsPath)
-                ? JSON.parse(fs.readFileSync(visualsPath))
+            const visuals = fs.existsSync(path.join(dir, 'visuals.json'))
+                ? JSON.parse(fs.readFileSync(path.join(dir, 'visuals.json')))
                 : {};
 
-            const metadata = fs.existsSync(metadataPath)
-                ? JSON.parse(fs.readFileSync(metadataPath))
+            const metadata = fs.existsSync(path.join(dir, 'metadata.json'))
+                ? JSON.parse(fs.readFileSync(path.join(dir, 'metadata.json')))
                 : {};
 
             return { folder, script, visuals, metadata };
@@ -62,23 +52,17 @@ app.get('/api/content', (req, res) => {
 });
 
 
-// =============================
 // 🚀 START SERVER
-// =============================
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
 
-// =============================
 // 🤖 AUTO PIPELINE
-// =============================
 const { runPipeline } = require('./core/pipeline');
 
-// run immediately
 runPipeline();
 
-// run every 5 minutes
 setInterval(() => {
     console.log("Auto generating...");
     runPipeline();
